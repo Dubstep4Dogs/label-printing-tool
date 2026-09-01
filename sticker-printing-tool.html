@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sticker Sheet Printer — Avery 22612</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC;
+    --panel:#FFFFFF;
+    --ink:#22201B;
+    --ink-soft:#6B6558;
+    --line:#E4DFD2;
+    --accent:#B5502E;
+    --accent-soft:#F1DDD1;
+    --ok:#3F6B4F;
+    --shadow: 0 18px 40px -22px rgba(34,32,27,0.35);
+    --radius: 14px;
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --paper:#171512;
+      --panel:#211E19;
+      --ink:#F2EEE4;
+      --ink-soft:#A79E8C;
+      --line:#39352C;
+      --accent:#E08659;
+      --accent-soft:#3A2A22;
+      --ok:#7FB894;
+      --shadow: 0 18px 40px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#171512;
+    --panel:#211E19;
+    --ink:#F2EEE4;
+    --ink-soft:#A79E8C;
+    --line:#39352C;
+    --accent:#E08659;
+    --accent-soft:#3A2A22;
+    --ok:#7FB894;
+    --shadow: 0 18px 40px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .app{
+    display:grid;
+    grid-template-columns: 340px 1fr;
+    min-height:100vh;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .panel{
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:28px 26px 40px;
+    overflow-y:auto;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .brand .mark{
+    font-family:'Fraunces', serif;
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .brand .tag{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .lede{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:6px 0 26px;
+    padding-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .field{ margin-bottom:22px; }
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .field .hint{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    line-height:1.45;
+  }
+
+  .dropzone{
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    padding:22px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    position:relative;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .dropzone input{
+    position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+  }
+  .dropzone .dz-icon{ font-size:22px; margin-bottom:6px; }
+  .dropzone .dz-text{ font-size:13px; font-weight:500; }
+  .dropzone .dz-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; }
+  .thumb-row{
+    display:flex; align-items:center; gap:12px;
+    padding:10px; border:1px solid var(--line); border-radius:var(--radius);
+  }
+  .thumb-row img{
+    width:44px; height:44px; object-fit:cover; border-radius:50%;
+    border:1px solid var(--line);
+  }
+  .thumb-row .meta{ flex:1; font-size:12.5px; color:var(--ink-soft); }
+  .thumb-row button{
+    background:none; border:none; color:var(--accent); font-size:12.5px;
+    font-weight:600; cursor:pointer; padding:4px 6px;
+  }
+  .design-row{ margin-bottom:10px; }
+  .design-row .stepper{ width:104px; flex-shrink:0; }
+  .design-row .meta{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  input[type="number"]{
+    width:100%;
+    font-family:inherit;
+    font-size:14px;
+    padding:9px 11px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+  }
+  input[type="number"]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .stepper{
+    display:flex; align-items:center; border:1px solid var(--line);
+    border-radius:9px; overflow:hidden; background:var(--paper);
+  }
+  .stepper button{
+    width:34px; height:36px; border:none; background:transparent;
+    color:var(--ink); font-size:16px; cursor:pointer;
+  }
+  .stepper button:hover{ background:var(--accent-soft); }
+  .stepper input{
+    border:none; text-align:center; width:100%; background:transparent;
+    font-size:14px; color:var(--ink); -moz-appearance:textfield;
+  }
+  .stepper input::-webkit-outer-spin-button,
+  .stepper input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+  details.adv{
+    border-top:1px solid var(--line);
+    padding-top:16px; margin-top:4px;
+  }
+  details.adv summary{
+    cursor:pointer; font-size:13px; font-weight:600; color:var(--ink-soft);
+    list-style:none; display:flex; align-items:center; gap:6px;
+  }
+  details.adv summary::-webkit-details-marker{ display:none; }
+  details.adv summary::before{ content:"›"; display:inline-block; transition:transform .15s; font-size:16px; }
+  details.adv[open] summary::before{ transform:rotate(90deg); }
+  details.adv .adv-body{ padding-top:16px; }
+
+  .toggle-row{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:13px; margin-bottom:14px;
+  }
+  .switch{
+    position:relative; width:38px; height:22px; flex-shrink:0;
+  }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch .slider{
+    position:absolute; inset:0; background:var(--line); border-radius:20px;
+    cursor:pointer; transition:.15s;
+  }
+  .switch .slider::before{
+    content:""; position:absolute; width:16px; height:16px; left:3px; top:3px;
+    background:var(--panel); border-radius:50%; transition:.15s;
+  }
+  .switch input:checked + .slider{ background:var(--accent); }
+  .switch input:checked + .slider::before{ transform:translateX(16px); }
+
+  .printbtn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:11px;
+    background:var(--accent);
+    color:#fff;
+    font-family:inherit;
+    font-size:14.5px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:6px;
+    box-shadow: var(--shadow);
+  }
+  .printbtn:disabled{
+    opacity:.45; cursor:not-allowed; box-shadow:none;
+  }
+  .printbtn:not(:disabled):hover{ filter:brightness(1.06); }
+
+  .status{
+    font-size:12px; color:var(--ink-soft); text-align:center; margin-top:10px; min-height:16px;
+  }
+
+  /* ---------- Stage / preview ---------- */
+  .stage{
+    padding:40px 40px 60px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .stage-head{
+    width:100%;
+    max-width:640px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:22px;
+  }
+  .stage-head h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:20px;
+    margin:0;
+  }
+  .stage-head .count{
+    font-size:12.5px; color:var(--ink-soft);
+  }
+
+  .sheet-wrapper{
+    width:100%;
+    max-width:640px;
+    margin-bottom:34px;
+    position:relative;
+  }
+  .sheet-label{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    font-weight:600;
+    letter-spacing:.02em;
+  }
+  .sheet{
+    width:8.5in;
+    height:11in;
+    background:#fff;
+    box-shadow: var(--shadow);
+    transform-origin: top left;
+    position:relative;
+    border-radius:2px;
+  }
+  .grid{
+    position:absolute;
+    top:var(--margin-top, 0.75in);
+    left:var(--margin-left, 0.75in);
+    display:grid;
+    grid-template-columns: repeat(3, 2in);
+    grid-template-rows: repeat(4, 2in);
+    column-gap:var(--gap-x, 0.5in);
+    row-gap:var(--gap-y, 0.5in);
+  }
+  .cell{
+    width:2in; height:2in;
+    border-radius:50%;
+    overflow:hidden;
+    position:relative;
+    background:#fafafa;
+  }
+  .cell img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .cell.empty{
+    background:repeating-linear-gradient(45deg, #f1efe8, #f1efe8 6px, #ffffff 6px, #ffffff 12px);
+  }
+  .cell.used-up{
+    background:#efece3;
+  }
+  .cell.used-up::after{
+    content:"used";
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:9px; letter-spacing:.06em; color:#b8b1a0; font-weight:600;
+  }
+  .cell .cut-guide{
+    position:absolute; inset:0; border-radius:50%;
+    border:3px dashed #000;
+    pointer-events:none;
+    display:none;
+  }
+  @media screen {
+    body.guide-screen .cut-guide{ display:block; }
+  }
+
+  @media (max-width: 860px){
+    .app{ grid-template-columns:1fr; }
+    .panel{ border-right:none; border-bottom:1px solid var(--line); }
+    .stage{ padding:28px 18px 50px; }
+  }
+
+  /* ---------- Print ---------- */
+  @media print{
+    @page{ size: letter; margin:0; }
+    html,body{ background:#fff; }
+    .panel, .stage-head, .sheet-label, .app > .panel{ display:none !important; }
+    .stage{ padding:0; margin:0; display:block; align-items:stretch; overflow:visible; }
+    .sheet-wrapper{ margin:0; max-width:none; box-shadow:none; page-break-after: always; }
+    .sheet-wrapper:last-child{ page-break-after:auto; }
+    .sheet{ box-shadow:none; transform:none !important; border-radius:0; }
+    .cell.empty, .cell.used-up{ background:#fff !important; }
+    .cell.used-up::after{ display:none; }
+    .cut-guide{ display:none; }
+    body.guide-print .cut-guide{ display:block !important; border-color:#000; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="panel">
+    <div class="brand"><span class="mark">🏷️ Sheetwork</span></div>
+    <p class="lede">Lay out your Canva design on an Avery 22612 sheet (2&Prime; round, 12 per sheet) and print straight from your browser — no template upload, no Word.</p>
+
+    <div class="field">
+      <label for="fileInput">Your sticker designs</label>
+      <div id="designsList"></div>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
+        <div class="dz-icon">↑</div>
+        <div class="dz-text" id="dzText">Drop image or click to upload</div>
+        <div class="dz-sub">PNG or JPG, square, full-bleed (no white border needed)</div>
+      </div>
+      <div class="hint" id="pageHint">Add a design to get started.</div>
+    </div>
+
+    <details class="adv">
+      <summary>Reuse a partial sheet</summary>
+      <div class="adv-body">
+        <div class="field" style="margin-bottom:0;">
+          <label for="skip">Skip already-used positions</label>
+          <div class="stepper">
+            <button type="button" id="skipDown">−</button>
+            <input type="number" id="skip" value="0" min="0" max="11">
+            <button type="button" id="skipUp">+</button>
+          </div>
+          <div class="hint">If you already peeled some labels off sheet 1, enter how many so the rest print on blank spots.</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="adv" open>
+      <summary>Margins &amp; spacing</summary>
+      <div class="adv-body">
+        <div class="hint" style="margin-top:-4px; margin-bottom:14px;">Defaults are calibrated to this sticker sheet stock (measured pitch ~2.625&Prime; horizontal, ~2.583&Prime; vertical &mdash; not the generic 0.5&Prime;-gap spec). Edit any value in inches if a different sheet doesn't line up.</div>
+        <div class="row2">
+          <div class="field" style="margin-bottom:14px;">
+            <label for="marginLeft">Left margin (in)</label>
+            <input type="number" id="marginLeft" value="0.5625" step="0.01" min="0" max="2">
+          </div>
+          <div class="field" style="margin-bottom:14px;">
+            <label for="marginTop">Top margin (in)</label>
+            <input type="number" id="marginTop" value="0.5625" step="0.01" min="0" max="2">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field" style="margin-bottom:0;">
+            <label for="gapX">Column gap (in)</label>
+            <input type="number" id="gapX" value="0.625" step="0.01" min="0" max="2">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="gapY">Row gap (in)</label>
+            <input type="number" id="gapY" value="0.583" step="0.01" min="0" max="2">
+          </div>
+        </div>
+        <button type="button" id="resetMargins" style="margin-top:14px; background:none; border:none; color:var(--accent); font-size:12.5px; font-weight:600; cursor:pointer; padding:0;">Reset to defaults</button>
+      </div>
+    </details>
+
+    <details class="adv">
+      <summary>Fine-tune alignment</summary>
+      <div class="adv-body">
+        <div class="hint" style="margin-top:-4px; margin-bottom:14px;">If a test print lands slightly off the die-cut, nudge it here instead of rebuilding the file.</div>
+        <div class="row2">
+          <div class="field" style="margin-bottom:0;">
+            <label for="offX">Horizontal (in)</label>
+            <input type="number" id="offX" value="0" step="0.0625" min="-0.5" max="0.5">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="offY">Vertical (in)</label>
+            <input type="number" id="offY" value="0" step="0.0625" min="-0.5" max="0.5">
+          </div>
+        </div>
+        <div class="toggle-row" style="margin-top:18px;">
+          <span>Show cut-line guide on screen</span>
+          <label class="switch">
+            <input type="checkbox" id="guideToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row" style="margin-bottom:0;">
+          <span>Include guide when printing</span>
+          <label class="switch">
+            <input type="checkbox" id="printGuideToggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="hint" style="margin-top:8px;">Turn this on for a test print — the dashed circle shows exactly where the die-cut will fall, so you can measure how far off your design sits. Turn it off once you're dialed in.</div>
+      </div>
+    </details>
+
+    <button class="printbtn" id="printBtn" disabled>Print sheet(s)</button>
+    <div class="status" id="status">Upload a design to get started</div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-head">
+      <h1>Print preview</h1>
+      <div class="count" id="sheetCount"></div>
+    </div>
+    <div id="sheetsContainer"></div>
+  </main>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'sheetwork_state_v1';
+
+  const els = {
+    fileInput: document.getElementById('fileInput'),
+    dropzone: document.getElementById('dropzone'),
+    dzText: document.getElementById('dzText'),
+    designsList: document.getElementById('designsList'),
+    skip: document.getElementById('skip'),
+    skipUp: document.getElementById('skipUp'),
+    skipDown: document.getElementById('skipDown'),
+    marginLeft: document.getElementById('marginLeft'),
+    marginTop: document.getElementById('marginTop'),
+    gapX: document.getElementById('gapX'),
+    gapY: document.getElementById('gapY'),
+    resetMargins: document.getElementById('resetMargins'),
+    offX: document.getElementById('offX'),
+    offY: document.getElementById('offY'),
+    guideToggle: document.getElementById('guideToggle'),
+    printGuideToggle: document.getElementById('printGuideToggle'),
+    printBtn: document.getElementById('printBtn'),
+    status: document.getElementById('status'),
+    pageHint: document.getElementById('pageHint'),
+    sheetsContainer: document.getElementById('sheetsContainer'),
+    sheetCount: document.getElementById('sheetCount'),
+  };
+
+  const DEFAULT_MARGINS = { marginLeft: 0.5625, marginTop: 0.5625, gapX: 0.625, gapY: 0.583 };
+
+  let state = {
+    designs: [], // [{ id, imageData, fileName, qty }]
+    skip: 0,
+    marginLeft: DEFAULT_MARGINS.marginLeft,
+    marginTop: DEFAULT_MARGINS.marginTop,
+    gapX: DEFAULT_MARGINS.gapX,
+    gapY: DEFAULT_MARGINS.gapY,
+    // Calibrated for this specific sticker sheet stock on 2026-09-01:
+    // marginLeft 0.5625" (0.625" true margin, minus this printer's ~1/16" rightward print shift)
+    // marginTop 0.5625" (0.625" true margin, minus an additional 1/16" nudge up dialed in by eye)
+    // gapX 0.625" (2.625" col pitch), gapY 0.583" (2.583" row pitch)
+    offX: 0,
+    offY: 0,
+    guide: true,
+    printGuide: false,
+  };
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        state = Object.assign(state, parsed);
+        // Migrate old single-design saves (pre multi-design support)
+        if(parsed.imageData && (!parsed.designs || !parsed.designs.length)){
+          state.designs = [{
+            id: 'migrated',
+            imageData: parsed.imageData,
+            fileName: parsed.fileName || 'Your design',
+            qty: parsed.qty || 12,
+          }];
+        }
+        if(!Array.isArray(state.designs)) state.designs = [];
+      }
+    }catch(e){ console.warn('Could not load saved settings', e); }
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){ console.warn('Could not save settings (image may be too large for local storage)', e); }
+  }
+
+  function applyStateToInputs(){
+    els.skip.value = state.skip;
+    els.marginLeft.value = state.marginLeft;
+    els.marginTop.value = state.marginTop;
+    els.gapX.value = state.gapX;
+    els.gapY.value = state.gapY;
+    els.offX.value = state.offX;
+    els.offY.value = state.offY;
+    els.guideToggle.checked = state.guide;
+    els.printGuideToggle.checked = state.printGuide;
+    renderDesignsList();
+  }
+
+  function renderDesignsList(){
+    els.designsList.innerHTML = '';
+    state.designs.forEach((d, idx) => {
+      const row = document.createElement('div');
+      row.className = 'thumb-row design-row';
+      row.innerHTML =
+        '<img src="' + d.imageData + '" alt="">' +
+        '<div class="meta">' + (d.fileName || ('Design ' + (idx + 1))) + '</div>' +
+        '<div class="stepper">' +
+          '<button type="button" class="designQtyDown">−</button>' +
+          '<input type="number" class="designQty" value="' + d.qty + '" min="1" max="240">' +
+          '<button type="button" class="designQtyUp">+</button>' +
+        '</div>' +
+        '<button type="button" class="removeDesign">Remove</button>';
+      row.querySelector('.designQty').addEventListener('change', function(){
+        d.qty = clamp(parseInt(this.value, 10) || 1, 1, 240);
+        this.value = d.qty;
+        saveState();
+        render();
+      });
+      row.querySelector('.designQtyUp').addEventListener('click', function(){
+        const input = row.querySelector('.designQty');
+        d.qty = clamp(d.qty + 1, 1, 240);
+        input.value = d.qty;
+        saveState();
+        render();
+      });
+      row.querySelector('.designQtyDown').addEventListener('click', function(){
+        const input = row.querySelector('.designQty');
+        d.qty = clamp(d.qty - 1, 1, 240);
+        input.value = d.qty;
+        saveState();
+        render();
+      });
+      row.querySelector('.removeDesign').addEventListener('click', function(){
+        state.designs.splice(idx, 1);
+        saveState();
+        renderDesignsList();
+        render();
+      });
+      els.designsList.appendChild(row);
+    });
+    els.dzText.textContent = state.designs.length ? 'Drop another image or click to add a design' : 'Drop image or click to upload';
+  }
+
+  function setStatus(msg){ els.status.textContent = msg; }
+
+  function handleFile(file){
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      setStatus('Please upload an image file (PNG or JPG).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e){
+      state.designs.push({
+        id: Date.now() + '-' + Math.random().toString(36).slice(2),
+        imageData: e.target.result,
+        fileName: file.name,
+        qty: 12,
+      });
+      renderDesignsList();
+      saveState();
+      render();
+    };
+    reader.onerror = function(){ setStatus('Could not read that file — try a different image.'); };
+    reader.readAsDataURL(file);
+  }
+
+  els.fileInput.addEventListener('change', function(e){
+    handleFile(e.target.files[0]);
+    els.fileInput.value = '';
+  });
+
+  ['dragover','dragenter'].forEach(evt => {
+    els.dropzone.addEventListener(evt, function(e){
+      e.preventDefault(); els.dropzone.classList.add('drag');
+    });
+  });
+  ['dragleave','drop'].forEach(evt => {
+    els.dropzone.addEventListener(evt, function(e){
+      e.preventDefault(); els.dropzone.classList.remove('drag');
+    });
+  });
+  els.dropzone.addEventListener('drop', function(e){
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    handleFile(file);
+  });
+
+  function clamp(v, min, max){ return Math.min(max, Math.max(min, v)); }
+
+  function stepInput(input, delta, min, max){
+    let v = parseInt(input.value, 10);
+    if(isNaN(v)) v = min;
+    v = clamp(v + delta, min, max);
+    input.value = v;
+    input.dispatchEvent(new Event('change'));
+  }
+
+  els.skipUp.addEventListener('click', () => stepInput(els.skip, 1, 0, 11));
+  els.skipDown.addEventListener('click', () => stepInput(els.skip, -1, 0, 11));
+
+  [els.skip, els.marginLeft, els.marginTop, els.gapX, els.gapY, els.offX, els.offY, els.guideToggle, els.printGuideToggle].forEach(input => {
+    input.addEventListener('change', function(){
+      state.skip = clamp(parseInt(els.skip.value,10) || 0, 0, 11);
+      state.marginLeft = clamp(parseFloat(els.marginLeft.value) || 0, 0, 2);
+      state.marginTop = clamp(parseFloat(els.marginTop.value) || 0, 0, 2);
+      state.gapX = clamp(parseFloat(els.gapX.value) || 0, 0, 2);
+      state.gapY = clamp(parseFloat(els.gapY.value) || 0, 0, 2);
+      state.offX = clamp(parseFloat(els.offX.value) || 0, -0.5, 0.5);
+      state.offY = clamp(parseFloat(els.offY.value) || 0, -0.5, 0.5);
+      state.guide = els.guideToggle.checked;
+      state.printGuide = els.printGuideToggle.checked;
+      saveState();
+      render();
+    });
+  });
+
+  els.resetMargins.addEventListener('click', function(){
+    state.marginLeft = DEFAULT_MARGINS.marginLeft;
+    state.marginTop = DEFAULT_MARGINS.marginTop;
+    state.gapX = DEFAULT_MARGINS.gapX;
+    state.gapY = DEFAULT_MARGINS.gapY;
+    applyStateToInputs();
+    saveState();
+    render();
+  });
+
+  function buildPages(skip, designs){
+    const pages = [];
+    // Flatten designs into an ordered queue: all of design 1's qty, then design 2's, etc.
+    const queue = [];
+    designs.forEach(d => { for(let i = 0; i < d.qty; i++) queue.push(d); });
+    let idx = 0;
+    let firstPage = true;
+    do{
+      const slots = new Array(12).fill('blank');
+      let startAt = firstPage ? skip : 0;
+      for(let i = 0; i < startAt; i++) slots[i] = 'usedup';
+      for(let i = startAt; i < 12 && idx < queue.length; i++){
+        slots[i] = { kind: 'image', design: queue[idx] };
+        idx++;
+      }
+      pages.push(slots);
+      firstPage = false;
+    } while(idx < queue.length);
+    if(pages.length === 0) pages.push(new Array(12).fill('blank'));
+    return pages;
+  }
+
+  function render(){
+    document.body.classList.toggle('guide-screen', state.guide);
+    document.body.classList.toggle('guide-print', state.printGuide);
+
+    const hasImage = state.designs.length > 0;
+    const totalQty = state.designs.reduce((sum, d) => sum + d.qty, 0);
+    els.printBtn.disabled = !hasImage || totalQty === 0;
+    setStatus(hasImage ? 'Ready to print.' : 'Upload a design to get started');
+
+    const pages = buildPages(state.skip, state.designs);
+    els.sheetCount.textContent = pages.length + (pages.length === 1 ? ' sheet' : ' sheets');
+    const totalSlotsUsed = state.skip + totalQty;
+    const sheetsNeeded = Math.ceil(totalSlotsUsed / 12);
+    if(!hasImage){
+      els.pageHint.textContent = 'Add a design to get started.';
+    } else if(state.designs.length === 1){
+      els.pageHint.textContent = totalQty <= (12 - state.skip)
+        ? `Fills ${totalQty} of 12 on this sheet.`
+        : `Needs ${sheetsNeeded} sheet${sheetsNeeded>1?'s':''} of 12.`;
+    } else {
+      const breakdown = state.designs.map(d => d.qty).join(' + ');
+      els.pageHint.textContent = totalQty <= (12 - state.skip)
+        ? `Fills ${totalQty} of 12 on this sheet (${breakdown}).`
+        : `Needs ${sheetsNeeded} sheet${sheetsNeeded>1?'s':''} of 12 (${breakdown} = ${totalQty}).`;
+    }
+
+    els.sheetsContainer.innerHTML = '';
+    pages.forEach((slots, pageIndex) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'sheet-wrapper';
+
+      const label = document.createElement('div');
+      label.className = 'sheet-label';
+      label.textContent = 'Sheet ' + (pageIndex + 1) + ' of ' + pages.length;
+      wrap.appendChild(label);
+
+      const sheet = document.createElement('div');
+      sheet.className = 'sheet';
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      grid.style.setProperty('--margin-left', state.marginLeft + 'in');
+      grid.style.setProperty('--margin-top', state.marginTop + 'in');
+      grid.style.setProperty('--gap-x', state.gapX + 'in');
+      grid.style.setProperty('--gap-y', state.gapY + 'in');
+      const ox = state.offX;
+      const oy = state.offY;
+      grid.style.transform = `translate(${ox}in, ${oy}in)`;
+
+      slots.forEach(slot => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if(slot && typeof slot === 'object' && slot.kind === 'image'){
+          const img = document.createElement('img');
+          img.src = slot.design.imageData;
+          cell.appendChild(img);
+          const guide = document.createElement('div');
+          guide.className = 'cut-guide';
+          cell.appendChild(guide);
+        } else if(slot === 'usedup'){
+          cell.classList.add('used-up');
+        } else {
+          cell.classList.add('empty');
+        }
+        grid.appendChild(cell);
+      });
+
+      sheet.appendChild(grid);
+      wrap.appendChild(sheet);
+      els.sheetsContainer.appendChild(wrap);
+    });
+
+    requestAnimationFrame(fitAllSheets);
+  }
+
+  function fitAllSheets(){
+    const wrappers = document.querySelectorAll('.sheet-wrapper');
+    wrappers.forEach(wrap => {
+      const sheet = wrap.querySelector('.sheet');
+      if(!sheet) return;
+      sheet.style.transform = 'scale(1)';
+      const naturalWidth = sheet.offsetWidth;
+      const naturalHeight = sheet.offsetHeight;
+      const available = wrap.clientWidth;
+      const scale = Math.min(1, available / naturalWidth);
+      sheet.style.transform = `scale(${scale})`;
+      wrap.style.height = (naturalHeight * scale) + 'px';
+    });
+  }
+
+  window.addEventListener('resize', () => requestAnimationFrame(fitAllSheets));
+
+  els.printBtn.addEventListener('click', function(){
+    window.print();
+  });
+
+  loadState();
+  applyStateToInputs();
+  render();
+})();
+</script>
+</body>
+</html>
